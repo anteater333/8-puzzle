@@ -96,7 +96,7 @@ static void Main(string[] args)
 ```
 
 ### 결과
-![result](./_img/result.png)  
+![result](./_img/result.PNG)  
 
 ## 4. 알려진 문제
 ```
@@ -104,7 +104,7 @@ initial = { { 3, 8, 1 }, { 6, 2, 5 }, { 0, 4, 7 } }
 goal    = { { 1, 2, 3 }, { 8, 0, 4 }, { 7, 6, 5 } }
 ```
 현재 코드는 사이클 판단과 백트래킹이 구현되어 있지 않기 때문에 위와 같은 입력에서 답을 찾지 못하고 다음과 같이 무한 루프에 빠진다.  
-![failed](./_img/fail.png)  
+![failed](./_img/fail.PNG)  
 
 
 
