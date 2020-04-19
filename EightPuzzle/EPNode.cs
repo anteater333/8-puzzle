@@ -9,7 +9,7 @@ namespace EightPuzzle
     /// <summary>
     /// 8 퍼즐 상태에 대한 노드입니다.
     /// </summary>
-    class EPNode
+    class EPNode : IEquatable<EPNode>
     {
         /// <summary>
         /// 부모 노드 입니다. Backtracking에 사용됩니다.
@@ -22,8 +22,13 @@ namespace EightPuzzle
         /// <summary>
         /// 목표 노드까지의 추정치 입니다.
         /// </summary>
-        public int Heuristic { get; set; }
+        public int Heuristic { get => _h; }
+        /// <summary>
+        /// 8 퍼즐의 상태를 나타낸 2차원 배열[3][3] 입니다.
+        /// </summary>
+        public int[,] Matrix { get => _matrix; }
 
+        private int _h;
         private int[,] _matrix;
         private int _blankX, _blankY;
 
@@ -39,8 +44,8 @@ namespace EightPuzzle
         {
             this.Parent = parent;
             this.Distance = level;
-            this.Heuristic = int.MaxValue;
 
+            this._h = int.MaxValue;
             this._matrix = matrix;
             this._blankX = x; this._blankY = y;
         }
@@ -59,7 +64,7 @@ namespace EightPuzzle
                     if (this._matrix[i, j] != 0 && this._matrix[i, j] != goal[i, j]) count++;
                 }
             }
-            this.Heuristic = count;
+            this._h = count;
             return this;
         }
 
@@ -75,7 +80,7 @@ namespace EightPuzzle
             }
             else
             {
-                int[,] newMat = this._matrix;
+                int[,] newMat = this._matrix.Clone() as int[,];
                 int tmp = newMat[this._blankX, this._blankY];
                 newMat[this._blankX, this._blankY] = newMat[this._blankX - 1, this._blankY];
                 newMat[this._blankX - 1, this._blankY] = tmp;
@@ -95,7 +100,7 @@ namespace EightPuzzle
             }
             else
             {
-                int[,] newMat = this._matrix;
+                int[,] newMat = this._matrix.Clone() as int[,];
                 int tmp = newMat[this._blankX, this._blankY];
                 newMat[this._blankX, this._blankY] = newMat[this._blankX + 1, this._blankY];
                 newMat[this._blankX + 1, this._blankY] = tmp;
@@ -115,7 +120,7 @@ namespace EightPuzzle
             }
             else
             {
-                int[,] newMat = this._matrix;
+                int[,] newMat = this._matrix.Clone() as int[,];
                 int tmp = newMat[this._blankX, this._blankY];
                 newMat[this._blankX, this._blankY] = newMat[this._blankX, this._blankY - 1];
                 newMat[this._blankX, this._blankY - 1] = tmp;
@@ -135,7 +140,7 @@ namespace EightPuzzle
             }
             else
             {
-                int[,] newMat = this._matrix;
+                int[,] newMat = this._matrix.Clone() as int[,];
                 int tmp = newMat[this._blankX, this._blankY];
                 newMat[this._blankX, this._blankY] = newMat[this._blankX, this._blankY + 1];
                 newMat[this._blankX, this._blankY + 1] = tmp;
@@ -158,6 +163,28 @@ namespace EightPuzzle
                 else Console.WriteLine("f(n) = " + this.Distance + " + " + ((this.Heuristic == int.MaxValue) ? "INF" : this.Heuristic.ToString()));
             }
             return this;
+        }
+
+        /// <summary>
+        /// 노드가 서로 같은 상태인지 비교합니다.
+        /// </summary>
+        /// <param name="other">비교할 노드 입니다.</param>
+        /// <returns></returns>
+        public bool Equals(EPNode other)
+        {
+            if (other == null)
+                return false;
+            if (ReferenceEquals(this, other))
+                return true;
+            
+            for (int i = 0; i < 3; i++)
+            {
+                for (int j = 0; j < 3; j++)
+                {
+                    if (this.Matrix[i, j] != other.Matrix[i, j]) return false;
+                }
+            }
+            return true;
         }
     }
 }
