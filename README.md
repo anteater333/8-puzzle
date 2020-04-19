@@ -32,17 +32,22 @@ h(n) : 퍼즐의 목표 상태와 현재 상태를 비교했을 때 서로 다�
 ```
 
 ## 2. 구현
-**class EPNode (EPNode.cs)**  
+### class EPNode (EPNode.cs)  
 8 퍼즐의 상태에 대한 정보를 저장하는 클래스.
+
+Constructor :
+ * `EPNode(int[,] matrix, int x, int y, int level, EPNode parent)`
+    * `matrix` : 8 퍼즐의 상태를 나타내는 2차원 배열
+    * `x` : 빈 칸의 x 좌표
+    * `y` : 빈 칸의 y 좌표
+    * `level` : 시작 노드로부터의 거리
+    * `parent` : 부모 노드
 
 Properties :
  * `Parent` : 부모 노드
  * `Distance` : 시작 노드로부터의 거리
  * `Heuristic` : 목표 노드까지의 추정치(초기값 = INF)
-
-Fields :
- * `_matrix` : 8 퍼즐의 상태를 나타내는 2차원 배열
- * `_blankX`, `_blankY` : 현재 노드의 8 퍼즐 상태에서 빈 칸의 좌표
+ * `Matrix` : 8 퍼즐의 상태를 나타내는 2차원 배열
 
 APIs :
  * `EPNode MoveUp()`
@@ -55,3 +60,53 @@ APIs :
 ! `Estimate`와 `Print()`의 반환 타입을 `EPNode`로 지정한 이유:  
 ![Test](./_img/test_01.PNG)  
 `this`를 리턴하기 때문에 테스트 하기에 편합니다.
+
+## class EightPuzzle (EightPuzzle.cs)
+EPNode를 가지고 8 퍼즐 문제를 푸는 클래스. (EightPuzzle **has-a** EPNode)
+
+Constructor :
+ * `EightPuzzle(int[,] initial, int[,] goal, int limit)`
+    * `initial` : 초기 상태
+    * `goal` : 목표 상태
+    * `limit` : 탐색 한도 (무한 루프를 방지, 유의미하게 큰 값)
+
+API :
+ * `bool Solve()` : A* 알고리즘을 사용해 8 퍼즐 문제 풀이 시작
+
+## 3. 실행
+### 코드
+
+```
+static void Main(string[] args)
+{
+    int[,] initial  = new int[,] { { 2, 8, 3 }, { 1, 6, 4 }, { 7, 0, 5 } };
+    int[,] goal     = new int[,] { { 1, 2, 3 }, { 8, 0, 4 }, { 7, 6, 5 } };
+    int limit = 5000;
+
+    Console.WriteLine("Solve the 8-Puzzle within " + limit + " search(es).");
+    if ( new EightPuzzle(initial, goal, limit).Solve() )
+    {
+        Console.WriteLine("Solved!");
+    }
+    else
+    {
+        Console.WriteLine("Failed!");
+    }
+}
+```
+
+### 결과
+![result](./_img/result.png)  
+
+## 4. 알려진 문제
+```
+initial = { { 3, 8, 1 }, { 6, 2, 5 }, { 0, 4, 7 } }
+goal    = { { 1, 2, 3 }, { 8, 0, 4 }, { 7, 6, 5 } }
+```
+현재 코드는 사이클 판단과 백트래킹이 구현되어 있지 않기 때문에 위와 같은 입력에서 답을 찾지 못하고 다음과 같이 무한 루프에 빠진다.  
+![failed](./_img/fail.png)  
+
+
+
+#
+anteater333@github
