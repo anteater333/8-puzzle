@@ -61,7 +61,7 @@ APIs :
 ![Test](./_img/test_01.PNG)  
 `this`를 리턴하기 때문에 테스트 하기에 편합니다.
 
-## class EightPuzzle (EightPuzzle.cs)
+### class EightPuzzle (EightPuzzle.cs)
 EPNode를 가지고 8 퍼즐 문제를 푸는 클래스. (EightPuzzle **has-a** EPNode)
 
 Constructor :
