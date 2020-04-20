@@ -75,7 +75,7 @@ Property :
 
 APIs :
  * `static int PrintPath(EPNode node)` : node에서 시작 상태까지의 경로 출력
- * `bool Solve()` : A* 알고리즘을 사용해 8 퍼즐 문제 풀이 시작
+ * `EPNode Solve()` : A* 알고리즘을 사용해 8 퍼즐 문제 풀이 시작
 
 ## 3. 실행
 ### 코드
