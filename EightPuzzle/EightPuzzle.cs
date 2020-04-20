@@ -9,6 +9,8 @@ namespace EightPuzzle
 {
     class EightPuzzle
     {
+        public bool DEBUG { get; set; }
+
         private SimplePriorityQueue<EPNode> _OPEN;
         private List<EPNode> _CLOSED;
 
@@ -16,6 +18,24 @@ namespace EightPuzzle
         private int[] _blank;
         
         private int _LIMIT;
+
+        private bool _solvability;
+
+        /// <summary>
+        /// 노드로부터 루트 까지의 경로를 콘솔 화면에 출력합니다.
+        /// </summary>
+        /// <param name="node"></param>
+        /// <returns></returns>
+        static public int PrintPath(EPNode node)
+        {
+            if (node == null)
+                return -1;
+
+            int num = PrintPath(node.Parent) + 1;
+            Console.WriteLine("Depth " + num);
+            node.Print();
+            return num;
+        }
 
         /// <summary>
         /// 8 퍼즐을 해결하는데 필요한 정보를 담고 있는 객체를 생성합니다.
@@ -25,6 +45,8 @@ namespace EightPuzzle
         /// <param name="limit">탐색 한도</param>
         public EightPuzzle(int[,] initial, int[,] goal, int limit)
         {
+            this.DEBUG = false;
+
             this._initial = initial; this._goal = goal;
             this._OPEN = new SimplePriorityQueue<EPNode>();
             this._CLOSED = new List<EPNode>();
@@ -41,15 +63,25 @@ namespace EightPuzzle
                 Console.WriteLine("ERR :: Puzzle should have only one blank!!");
             else
                 Console.WriteLine("OK");
-            Console.WriteLine("========================================");
+            Console.WriteLine("Checking the puzzle's solvability...");
+            this._solvability = CheckSolvable();
+            if (this._solvability)
+                Console.WriteLine("OK");
+            else
+                Console.WriteLine("The goal state is unreachable!!");
+            Console.WriteLine("================================================");
         }
 
         /// <summary>
         /// A* 알고리즘을 사용한 8 퍼즐 문제 풀이를 시작합니다.
         /// </summary>
         /// <returns></returns>
-        public bool Solve()
+        public EPNode Solve()
         {
+            if (!_solvability) return null;
+
+            Console.WriteLine("Start searching.");
+
             int count = 0;
 
             EPNode rootNode = new EPNode(_initial, _blank[0], _blank[1], 0, null).Estimate(_goal);
@@ -59,30 +91,73 @@ namespace EightPuzzle
 
             while (_OPEN.Count > 0 && count < _LIMIT)
             {
+                Console.Write("Search count : " + count++ + " ");
+                for (int i = 0; i < (count / 200) % 10; i++)
+                    Console.Write(".");
+
+                // 예상 비용이 가장 낮은 노드 선택
                 EPNode bestNode = _OPEN.Dequeue();
 
-                Console.WriteLine("Node #" + ++count);
-                bestNode.Print();
+                // Console창 출력
+                if (DEBUG)
+                {
+                    Console.WriteLine("Node #" + count);
+                    bestNode.Print();
+                }
 
+                // CLOSED 큐에 추가
+                _CLOSED.Add(bestNode);
+
+                // 목표 도달
                 if (bestNode.Equals(goalNode)) // Reached the goal!
                 {
-                    return true;
+                    Console.WriteLine("...");
+                    return bestNode;
                 }
 
-                EPNode[] moved = new EPNode[4];
-                moved[0] = bestNode.MoveUp();
-                moved[1] = bestNode.MoveDown();
-                moved[2] = bestNode.MoveLeft();
-                moved[3] = bestNode.MoveRight();
+                // 자식 노드 생성 (상, 하, 좌, 우 이동)
+                EPNode[] movedNode = new EPNode[4];
+                movedNode[0] = bestNode.MoveUp();
+                movedNode[1] = bestNode.MoveDown();
+                movedNode[2] = bestNode.MoveLeft();
+                movedNode[3] = bestNode.MoveRight();
+
+                // 각 자식 노드들에 대해 다음 연산을 수행
                 for (int i = 0; i < 4; i++)
                 {
-                    if (moved[i] == null) continue; // Hit the wall!
+                    // 해당 방향으로는 이동이 불가능한 경우. 해당 노드 무시.
+                    if (movedNode[i] == null) continue; // Hit the wall!
 
-                    _OPEN.Enqueue(moved[i].Estimate(_goal), moved[i].Distance + moved[i].Heuristic);
+                    // 자식 노드의 추정값 계산
+                    movedNode[i].Estimate(_goal);
+
+                    // OPEN, CLOSED 큐에서 해당 노드가 존재하는지 검색
+                    EPNode nodeInOpen = Find(_OPEN, movedNode[i]);
+                    EPNode nodeInClosed = Find(_CLOSED, movedNode[i]);
+
+                    if (nodeInOpen == null && nodeInClosed == null)   // OPEN, CLOSED 모두에 해당 노드가 존재하지 않는 경우
+                    {
+                        _OPEN.Enqueue(movedNode[i], movedNode[i].Distance + movedNode[i].Heuristic);
+                    }
+                    else if (nodeInOpen != null)                      // OPEN 큐에 해당 노드가 존재할 경우
+                    {                                                    // 만약 기존 노드보다 새로 생성한 자식 노드가 더 효율적일 때,
+                        if (nodeInOpen.Distance > movedNode[i].Distance) // ( == Distance가 더 작을 때)
+                            nodeInOpen = movedNode[i];                   // 새로 생성한 자식 노드로 기존 노드를 대체
+                        else                                             // 그렇지 않으면,
+                            continue;                                    // 그냥 무시하고 진행
+                    }
+                    else if (nodeInClosed != null)                    // OPEN 큐에는 없지만 CLOSED 큐에 해당 노드가 존재할 경우
+                    {                                                    // 더 좋은 path가 나올 가능성이 없으므로 패스
+                        continue;
+                    }
                 }
+
+                Console.Write("\r" + new string(' ', Console.WindowWidth - 1) + "\r");
             }
 
-            return false;
+            Console.WriteLine("...");
+
+            return null;
         }
 
         /// <summary>
@@ -118,6 +193,56 @@ namespace EightPuzzle
             {
                 return new int[] { x, y };
             }
+        }
+
+        /// <summary>
+        /// 퍼즐의 해결 가능 여부를 확인합니다.
+        /// </summary>
+        /// <returns></returns>
+        private bool CheckSolvable()
+        {
+            int[] initial = new int[9];
+            int[] goal = new int[9];
+
+            int index = 0;
+            for (int i = 0; i < 3; i++)
+            {
+                for (int j = 0; j < 3; j++)
+                {
+                    initial[index] = _initial[i, j];
+                    goal[index] = _goal[i, j];
+                    index++;
+                }
+            }
+
+            int initialParity = 0; int goalParity = 0;
+
+            for (int i = 0; i < 8; i++)
+            {
+                for (int j = i + 1; j < 9; j++)
+                {
+                    if (initial[i] > initial[j] && initial[j] != 0) initialParity++;
+                    if (goal[i] > goal[j] && goal[j] != 0) goalParity++;
+                }
+            }
+
+            return (initialParity % 2) == (goalParity % 2);
+        }
+
+        /// <summary>
+        /// 큐에서 해당 노드가 존재하는지 찾아 해당 노드를 반환합니다. 만약 존재하지 않는다면 -1을 반환합니다.
+        /// </summary>
+        /// <param name="queue">검색을 수행할 큐</param>
+        /// <param name="node">찾으려는 노드</param>
+        /// <returns></returns>
+        private EPNode Find(IEnumerable<EPNode> queue, EPNode node)
+        {
+            foreach(EPNode item in queue)
+            {
+                if (item.Equals(node))
+                    return item;
+            }
+            return null;
         }
     }
 }

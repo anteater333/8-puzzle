@@ -70,7 +70,11 @@ Constructor :
     * `goal` : 목표 상태
     * `limit` : 탐색 한도 (무한 루프를 방지, 유의미하게 큰 값)
 
-API :
+Property :
+ * `DEBUG` : 탐색 과정의 출력 여부 (default = false)
+
+APIs :
+ * `static int PrintPath(EPNode node)` : node에서 시작 상태까지의 경로 출력
  * `bool Solve()` : A* 알고리즘을 사용해 8 퍼즐 문제 풀이 시작
 
 ## 3. 실행
@@ -79,14 +83,32 @@ API :
 ```
 static void Main(string[] args)
 {
-    int[,] initial  = new int[,] { { 2, 8, 3 }, { 1, 6, 4 }, { 7, 0, 5 } };
-    int[,] goal     = new int[,] { { 1, 2, 3 }, { 8, 0, 4 }, { 7, 6, 5 } };
-    int limit = 5000;
+    Console.WriteLine("====== 8-Puzzle ================================");
+
+    int[,] initial = new int[,] { { 2, 8, 3 }, { 1, 6, 4 }, { 7, 0, 5 } };
+    int[,] goal = new int[,] { { 1, 2, 3 }, { 8, 0, 4 }, { 7, 6, 5 } };
+    int limit = 10000;
+
+    Console.WriteLine("Initial State : ");
+    new EPNode(initial, 0, 0, 0, null).Print();
+    Console.WriteLine("Goal State : ");
+    new EPNode(goal, 0, 0, 0, null).Print();
 
     Console.WriteLine("Solve the 8-Puzzle within " + limit + " search(es).");
-    if ( new EightPuzzle(initial, goal, limit).Solve() )
+    Console.WriteLine("================================================");
+
+    EightPuzzle puzzle = new EightPuzzle(initial, goal, limit)
+    {
+        DEBUG = false
+    };
+    EPNode result = puzzle.Solve();
+
+    if ( result != null )
     {
         Console.WriteLine("Solved!");
+        Console.WriteLine("================================================");
+        Console.WriteLine("Path : ");
+        EightPuzzle.PrintPath(result);
     }
     else
     {
@@ -98,15 +120,25 @@ static void Main(string[] args)
 ### 결과
 ![result](./_img/result.PNG)  
 
-## 4. 알려진 문제
+## 4. 고려할 점
 ```
 initial = { { 3, 8, 1 }, { 6, 2, 5 }, { 0, 4, 7 } }
 goal    = { { 1, 2, 3 }, { 8, 0, 4 }, { 7, 6, 5 } }
 ```
-현재 코드는 사이클 판단과 백트래킹이 구현되어 있지 않기 때문에 위와 같은 입력에서 답을 찾지 못하고 다음과 같이 무한 루프에 빠진다.  
 ![failed](./_img/fail.PNG)  
+위 입력은 해결 불가능한 사례이다. 이러한 상황에 대한 예외 처리가 따로 필요하다.  
 
+```
+Fact 1: For a grid of odd width, the polarity of the number of inversions is invariant.
+That means: all legal moves preserve the polarity of the number of inversions.
+```
+(Ref 1. https://www.cs.bham.ac.uk/~mdr/teaching/modules04/java2/TilesSolvability.html)  
+(Ref 2. https://stackoverflow.com/questions/36108269/does-8-puzzle-solvability-rules-work-for-any-goal-state)  
 
+8 퍼즐에서 큰 수가 작은 수 보다 먼저 나오는 경우를 **도치(Inversion)** 라고 정의한다. N*N 퍼즐 문제에서 N이 홀수일 때는 도치의 극성(짝수/홀수)은 이동에 상관 없이 항상 같다. 즉, 만약 초기 상태와 목표 상태 모두 도치의 개수가 짝수 혹은 홀수로 동일할 경우, 해당 퍼즐은 해결 가능하다.  
+따라서 해결 불가능한 입력이 주어졌을 땐 다음과 같이 출력된다.  
+
+![blocking](./_img/block.PNG)
 
 #
 anteater333@github
