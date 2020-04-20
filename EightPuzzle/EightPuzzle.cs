@@ -91,10 +91,7 @@ namespace EightPuzzle
 
             while (_OPEN.Count > 0 && count < _LIMIT)
             {
-                Console.Write("Search count : " + count++ + " ");
-                for (int i = 0; i < (count / 200) % 10; i++)
-                    Console.Write(".");
-
+                count++;
                 // 예상 비용이 가장 낮은 노드 선택
                 EPNode bestNode = _OPEN.Dequeue();
 
@@ -104,6 +101,12 @@ namespace EightPuzzle
                     Console.WriteLine("Node #" + count);
                     bestNode.Print();
                 }
+                else
+                {
+                    Console.Write("Search count : " + count + " ");
+                    for (int i = 0; i < (count / 200) % 10; i++)
+                        Console.Write(".");
+                }
 
                 // CLOSED 큐에 추가
                 _CLOSED.Add(bestNode);
@@ -111,7 +114,8 @@ namespace EightPuzzle
                 // 목표 도달
                 if (bestNode.Equals(goalNode)) // Reached the goal!
                 {
-                    Console.WriteLine("...");
+                    if (!DEBUG)
+                        Console.WriteLine("...");
                     return bestNode;
                 }
 
@@ -152,10 +156,12 @@ namespace EightPuzzle
                     }
                 }
 
-                Console.Write("\r" + new string(' ', Console.WindowWidth - 1) + "\r");
+                if (!DEBUG)
+                    Console.Write("\r" + new string(' ', Console.WindowWidth - 1) + "\r");
             }
 
-            Console.WriteLine("...");
+            if (!DEBUG)
+                Console.WriteLine("...");
 
             return null;
         }
