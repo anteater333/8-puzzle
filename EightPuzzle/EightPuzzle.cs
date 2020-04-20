@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -132,21 +132,24 @@ namespace EightPuzzle
                     // 해당 방향으로는 이동이 불가능한 경우. 해당 노드 무시.
                     if (movedNode[i] == null) continue; // Hit the wall!
 
-                    // 자식 노드의 추정값 계산
-                    movedNode[i].Estimate(_goal);
-
                     // OPEN, CLOSED 큐에서 해당 노드가 존재하는지 검색
                     EPNode nodeInOpen = Find(_OPEN, movedNode[i]);
                     EPNode nodeInClosed = Find(_CLOSED, movedNode[i]);
 
                     if (nodeInOpen == null && nodeInClosed == null)   // OPEN, CLOSED 모두에 해당 노드가 존재하지 않는 경우
                     {
+                        // 자식 노드의 추정값 계산
+                        movedNode[i].Estimate(_goal);
                         _OPEN.Enqueue(movedNode[i], movedNode[i].Distance + movedNode[i].Heuristic);
                     }
                     else if (nodeInOpen != null)                      // OPEN 큐에 해당 노드가 존재할 경우
                     {                                                    // 만약 기존 노드보다 새로 생성한 자식 노드가 더 효율적일 때,
                         if (nodeInOpen.Distance > movedNode[i].Distance) // ( == Distance가 더 작을 때)
+                        {
+                            // 큐에 넣기 전 자식 노드의 추정값 계산(추정값은 큐에 이미 존재하는 노드와 같음)
+                            movedNode[i].Estimate(_goal);
                             nodeInOpen = movedNode[i];                   // 새로 생성한 자식 노드로 기존 노드를 대체
+                        }
                         else                                             // 그렇지 않으면,
                             continue;                                    // 그냥 무시하고 진행
                     }
