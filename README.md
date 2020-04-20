@@ -57,7 +57,7 @@ APIs :
  * `EPNode Estimate(int[,] goal)` : 목표 노드에 대한 현재 노드의 추정치 계산
  * `EPNode Print()` : 현재 노드 출력
 
-! `Estimate`와 `Print()`의 반환 타입을 `EPNode`로 지정한 이유:  
+! `Estimate()`와 `Print()`의 반환 타입을 `EPNode`로 지정한 이유:  
 ![Test](./_img/test_01.PNG)  
 `this`를 리턴하기 때문에 테스트 하기에 편합니다.
 
